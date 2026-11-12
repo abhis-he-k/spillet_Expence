@@ -129,19 +129,31 @@ namespace ExpenseSplitterApi.Controllers
             if (expenses.Any() && !confirm)
             {
                 var totalExpenses = expenses.Sum(e => e.Amount);
-                var totalSettled = settlements.Sum(s => s.Amount);
-                var totalOwed = expenses.SelectMany(e => e.Splits).Sum(s => s.AmountOwed);
+                var allSplits = expenses.SelectMany(e => e.Splits).ToList();
 
-                bool isFullySettled = totalSettled >= totalOwed;
+                var memberIds = expenses.Select(e => e.PaidByUserId)
+                    .Concat(allSplits.Select(s => s.UserId))
+                    .Concat(settlements.Select(s => s.FromUserId))
+                    .Concat(settlements.Select(s => s.ToUserId))
+                    .Distinct()
+                    .ToList();
 
-                if (!isFullySettled)
+                var unsettledCount = memberIds.Count(uid =>
+                {
+                    decimal net =
+                        expenses.Where(e => e.PaidByUserId == uid).Sum(e => e.Amount)
+                        - allSplits.Where(s => s.UserId == uid).Sum(s => s.AmountOwed)
+                        + settlements.Where(s => s.FromUserId == uid).Sum(s => s.Amount)
+                        - settlements.Where(s => s.ToUserId == uid).Sum(s => s.Amount);
+                    return Math.Abs(net) > 0.01m;
+                });
+
+                if (unsettledCount > 0)
                 {
                     return BadRequest(new
                     {
                         warning = "This group has unpaid expenses. Deleting it will permanently remove all expense and settlement records for this group.",
                         totalExpenses,
-                        totalOwed,
-                        totalSettled,
                         message = "To proceed anyway, resend this request with ?confirm=true"
                     });
                 }
@@ -191,7 +203,7 @@ public async Task<IActionResult> LeaveGroup(int groupId, [FromQuery] bool confir
     decimal settledOut = groupSettlements.Where(s => s.FromUserId == userId).Sum(s => s.Amount);
     decimal settledIn = groupSettlements.Where(s => s.ToUserId == userId).Sum(s => s.Amount);
 
-    decimal netBalance = paid - owed - settledOut + settledIn;
+    decimal netBalance = paid - owed + settledOut - settledIn;
 
     if (netBalance != 0)
     {

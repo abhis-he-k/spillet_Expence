@@ -3320,11 +3320,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\HP\\Desktop\\ExpenseSplit\\Backend\\ExpenseSplitterApi.csproj",
+      "projectUniqueName": "C:\\Users\\HP\\desktop\\ExpenseSplit\\Backend\\ExpenseSplitterApi.csproj",
       "projectName": "ExpenseSplitterApi",
-      "projectPath": "C:\\Users\\HP\\Desktop\\ExpenseSplit\\Backend\\ExpenseSplitterApi.csproj",
+      "projectPath": "C:\\Users\\HP\\desktop\\ExpenseSplit\\Backend\\ExpenseSplitterApi.csproj",
       "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\HP\\Desktop\\ExpenseSplit\\Backend\\obj\\",
+      "outputPath": "C:\\Users\\HP\\desktop\\ExpenseSplit\\Backend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\HP\\AppData\\Roaming\\NuGet\\NuGet.Config"

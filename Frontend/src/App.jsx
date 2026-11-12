@@ -38,6 +38,9 @@ function App() {
   const [name, setName] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [info, setInfo] = useState('');
+  const [leaveError, setLeaveError] = useState('');
+  const [newOwnerId, setNewOwnerId] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -254,8 +257,90 @@ function App() {
     }
   };
 
+  const leaveGroup = async () => {
+    setLeaveError('');
+ 
+    const myId = Number(getUserIdFromToken(token));
+    const isCreator = selectedGroup.createdByUserId === myId;
+    const otherRealMembers = (selectedGroup.members || []).filter(
+      (m) => m && !m.isDeletedPlaceholder && m.id !== myId
+    );
+ 
+    if (isCreator && otherRealMembers.length > 0 && !newOwnerId) {
+      setLeaveError('Pick a new owner before leaving.');
+      return;
+    }
+ 
+    const prompt =
+      isCreator && otherRealMembers.length === 0
+        ? `You are the last member. Leaving will permanently delete "${selectedGroup.name}" and all its records. Continue?`
+        : `Leave "${selectedGroup.name}"?`;
+    if (!window.confirm(prompt)) return;
+ 
+    let url = `http://localhost:5033/api/groups/${selectedGroup.id}/leave?confirm=true`;
+    if (isCreator && newOwnerId) url += `&transferOwnershipTo=${newOwnerId}`;
+ 
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+ 
+      if (!res.ok) {
+        const text = await res.text();
+        let msg = text || 'Failed to leave group';
+        try {
+          const data = JSON.parse(text);
+          msg = data.netBalance !== undefined ? data.message : data.warning || data.message || msg;
+        } catch {
+          // not JSON, keep the plain text
+        }
+        throw new Error(msg);
+      }
+ 
+      setGroups((prev) => prev.filter((g) => g.id !== selectedGroup.id));
+      setSelectedGroup(null);
+      setNewOwnerId('');
+    } catch (err) {
+      setLeaveError(err.message);
+    }
+  };
+
+  const deleteGroup = async () => {
+  setDeleteError('');
+
+  if (!window.confirm(`Delete "${selectedGroup.name}" for everyone? This cannot be undone.`)) return;
+
+  const base = `http://localhost:5033/api/groups/${selectedGroup.id}`;
+  const headers = { Authorization: `Bearer ${token}` };
+
+  try {
+    let res = await fetch(base, { method: 'DELETE', headers });
+
+    // The backend warns when there are unpaid expenses; ask again before forcing it.
+    if (res.status === 400) {
+      const data = await res.json().catch(() => null);
+      const warning = data?.warning || 'This group has unpaid expenses.';
+      if (!window.confirm(`${warning}\n\nDelete anyway?`)) return;
+      res = await fetch(`${base}?confirm=true`, { method: 'DELETE', headers });
+    }
+
+    if (res.status === 403) throw new Error('Only the group owner can delete this group.');
+    if (!res.ok) throw new Error('Failed to delete group');
+
+    setGroups((prev) => prev.filter((g) => g.id !== selectedGroup.id));
+    setSelectedGroup(null);
+  } catch (err) {
+    setDeleteError(err.message);
+  }
+};
+
+
   const openGroup = async (groupId) => {
     setSelectedGroupError('');
+    setLeaveError('');
+    setDeleteError('');
+    setNewOwnerId('');
 
     try {
       const response = await fetch(`http://localhost:5033/api/groups/${groupId}`, {
@@ -290,6 +375,13 @@ function App() {
 
   // ---------- Group detail view ----------
   if (token && selectedGroup) {
+
+    const myId = Number(getUserIdFromToken(token));
+    const isCreator = selectedGroup.createdByUserId === myId;
+    const otherRealMembers = (selectedGroup.members || []).filter(
+      (m) => m && !m.isDeletedPlaceholder && m.id !== myId
+    );
+
     return (
       <div>
         <button className="secondary" onClick={() => setSelectedGroup(null)}>
@@ -413,6 +505,47 @@ function App() {
             </ul>
           )}
         </div>
+         <div className="card">
+          <h2>Leave Group</h2>
+
+          {isCreator && otherRealMembers.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <label className="muted" style={{ marginBottom: 6 }}>
+                You are the owner. Pick the new owner:
+              </label>
+              <select value={newOwnerId} onChange={(e) => setNewOwnerId(e.target.value)}>
+                <option value="">Select a member</option>
+                {otherRealMembers.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {isCreator && otherRealMembers.length === 0 && (
+            <p className="muted" style={{ marginTop: 0 }}>
+              You are the only member, so leaving will delete this group.
+            </p>
+          )}
+
+          <button onClick={leaveGroup} style={{ background: '#d9534f' }}>
+            Leave group
+          </button>
+          {leaveError && <p style={errorStyle}>{leaveError}</p>}
+        </div>
+
+        {isCreator && (
+          <div className="card">
+            <h2>Delete Group</h2>
+            <p className="muted" style={{ marginTop: 0 }}>
+              Removes the group, all its expenses and settlements for every member.
+            </p>
+            <button onClick={deleteGroup} style={{ background: '#d9534f' }}>
+              Delete group
+            </button>
+            {deleteError && <p style={errorStyle}>{deleteError}</p>}
+          </div>
+)}
       </div>
     );
   }
