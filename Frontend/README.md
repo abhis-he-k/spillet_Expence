@@ -1,16 +1,59 @@
-# React + Vite
+# TripSplit — Frontend Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive single-page web client built with **React 19** and **Vite** for the Group Travel Expense Splitter platform.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Technical Overview
 
-## React Compiler
+- **Framework**: React 19 (`react`, `react-dom`)
+- **Build Tool**: Vite 8 with Hot Module Replacement (HMR)
+- **Styling**: Pure CSS3 design system with CSS custom properties (light enterprise palette, responsive layout, accessible typography)
+- **State Management**: React hooks (`useState`, `useEffect`, `useCallback`)
+- **API Integration**: Native `fetch` with JWT Bearer authentication headers
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+Frontend/
+├── public/
+│   └── favicon.svg         # SVG brand favicon
+├── src/
+│   ├── App.jsx             # Main application orchestrator & views
+│   ├── App.css             # Component layout, cards, modals & styles
+│   ├── index.css           # Global typography and base CSS reset
+│   └── main.jsx            # Application root mounting point
+├── index.html              # HTML entry template
+├── package.json            # Node dependencies and build scripts
+└── vite.config.js          # Vite build configuration
+```
+
+---
+
+## Available Scripts
+
+In the `Frontend` directory, you can run:
+
+### `npm run dev`
+Runs the development server at **`http://localhost:5173`** with hot module replacement enabled.
+
+### `npm run build`
+Compiles the React application into production-ready static assets in the `dist/` directory.
+
+### `npm run preview`
+Locally previews the production build.
+
+### `npm run lint`
+Runs ESLint across all source files to verify code quality.
+
+---
+
+## Connecting to Backend
+
+The frontend communicates with the ASP.NET Core Web API backend via:
+```javascript
+const API_BASE = 'http://localhost:5033/api';
+```
+Ensure the backend service is running on `http://localhost:5033` before starting the frontend development server.

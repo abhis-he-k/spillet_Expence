@@ -1,0 +1,23 @@
+# Build and binary folders
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+
+# System and IDE files
+.DS_Store
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vscode/*
+!.vscode/settings.json
+
+# SQLite temporary files
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Stray local cache folders
+Library/
+
