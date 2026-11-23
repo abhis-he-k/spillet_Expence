@@ -124,7 +124,12 @@ spillet_Expence/
 │   ├── ExpenseSplitter.db          # Active SQLite database file
 │   ├── ExpenseSplitterApi.csproj   # .NET project configuration
 │   ├── ExpenseSplitterApi.http     # HTTP test endpoints
-│   ├── Program.cs                  # Unified application host, DbContext, & Controllers
+│   ├── Program.cs                  # Application host and dependency configuration
+│   ├── Controllers/                # REST API controllers
+│   ├── Data/                       # Entity Framework DbContext
+│   ├── DTOs/                       # API request and response models
+│   ├── Models/                     # Entity models
+│   ├── Migrations/                 # EF Core database migrations
 │   ├── appsettings.json            # Configuration & SQLite connection string
 │   └── appsettings.Development.json
 ├── Frontend/
